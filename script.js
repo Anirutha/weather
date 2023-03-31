@@ -1,71 +1,75 @@
-var container=document.createElement("div");
-container.className="container";
-var row=document.createElement("div");
-row.classList.add("row","m-3");
-container.append(row);
+var boundary = document.createElement('div');
+boundary.classList.add('container');
 
-var res=fetch("https://restcountries.com/v2/all");
-res.then((data)=>data.json())
-.then((data1)=>foo(data1))
-.catch((error)=>console.log(error));
+var row = document.createElement('div');
+row.setAttribute('class', 'row')
+
+document.body.append(boundary);
+boundary.append(row);
 
 
-function foo(data1){
-    //console.log(data1);
-    for(var i=0;i<data1.length;i++){
-        try{
-        console.log(`Latitude:${data1[i].latlng[0]} Longitude:${data1[i].latlng[1]}`);
-        weatherdata(data1[i].latlng[0],data1[i].latlng[1]);
-        row.innerHTML+=
-        `<div class="col-md-4">
-        <div class="card border-primary mb-3" style="max-width: 18rem;">
-        <h6 class="card-title">${data1[i].name} </h6>
-        <img src="${data1[i].flag}" class="card-img-top" alt="Country Flags">
-        <div class="card-body text primary">
-        <p class="card-text">Capital : ${data1[i].capital}</p>
-        <p class="card-text">Region : ${data1[i].region}</p>
-        <p class="card-text">Country Code : ${data1[i].alpha3Code}</p>
-        <button type="button" class="btn btn-primary" onclick=weatherdata()>Click for weather</button>
-        <p id="weather"></p>
-        </div>
-        </div>
-        </div>
-        `
+async function getData() {
+    try {
+        var rest_countries = await fetch("https://restcountries.com/v2/all");
+        var jsondata = await rest_countries.json();
+        //    console.log(jsondata[0]);
+
+        jsondata.forEach((element, index) => {
+            var card = document.createElement('div');
+            card.classList.add('card', 'col-lg-4', 'col-sm-12', 'my-2');
+
+            var header = document.createElement('h6')
+            header.setAttribute('class', 'card-header text-center bg-dark text-white')
+            header.innerHTML = element.name;
+
+            var cardbody = document.createElement('div');
+            cardbody.classList.add('cardbody', 'card-body', 'text-center', 'bg-light');
+
+            var img = document.createElement('img');
+            img.classList.add('card-img', 'mb-2');
+            img.src = element.flag;
+            img.height = 150;
+            img.width = 150;
+
+            var capital = document.createElement('h6');
+            capital.setAttribute('class', 'card-text text-center');
+            capital.innerHTML = 'Capital : ' + element.capital;
+
+            var region = document.createElement('h6');
+            region.setAttribute('class', 'card-text text-center');
+            region.innerHTML = 'Region : ' + element.region;
+
+            var code = document.createElement('h6');
+            code.setAttribute('class', 'card-text text-center');
+            code.innerHTML = 'Country-code : ' + element.alpha3Code;
+
+            var climate = document.createElement('h6');
+            climate.setAttribute('class', 'card-text text-center mt-3');
+
+            var btn = document.createElement('button');
+            btn.setAttribute('class', 'btn btn-primary');
+            btn.innerHTML = 'Click for Weather';
+            btn.id = "btn-" + index;
+            btn.onclick = async function() {
+                try {
+                    var data = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${element.latlng[0]}&lon=${element.latlng[1]}&appid=1b8219db0924bc0ab5c34aa34a8704e2`);
+                    var weatherdata = await data.json();
+                    // console.log(element.latlng + ' : ' + weatherdata.coord.lon, weatherdata.coord.lat)
+                    climate.innerHTML = (weatherdata.main.temp)+ "&#176; C  " ;
+                } catch (err) {
+                    console.log(err);
+                }
+
+            }
+
+            cardbody.append(img, capital, region, code, btn, climate)
+            card.append(header, cardbody);
+            row.append(card);
+        });
+    } catch (err) {
+        console.log(err);
     }
-catch (error) {
-    console.log(error);
-  }
-}
-     document.body.append(container);
-}
-
-   
-
-async function weatherdata(lat,lon){
-try {
-    if(lon===undefined) throw new Error("Invalid Coordinates");
-    console.log(lat,lon);
-    let res2=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=9ef1cec4c7fdd036777255d6bc0463b0`);
-    let res3=await res2.json();
-    document.getElementById("weather").innerHTML=`${res3.main.temp}`;
-    //console.log(res3);
-} catch (error) {
-   console.log(error) 
-}
 
 }
 
-weatherdata(lat,lon);
-
-
-
-
-
-
-
-
-
-
-
-
-
+getData()
